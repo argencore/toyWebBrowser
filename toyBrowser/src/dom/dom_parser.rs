@@ -9,14 +9,14 @@ struct Parser {
 
 impl Parser{
     /** fn next_char
-        #Summary
+        # Summary
         The function peeks at the current character without
         consuming it
-        #Arguments
+        # Arguments
 
         * `&self` - Parser
 
-        #Outputs
+        # Outputs
 
         * `char` - the character peeked at
      */
@@ -29,15 +29,15 @@ impl Parser{
     }
 
     /** fn starts_with
-        #Summary
+        # Summary
         The function checks if the next characters form
         a given string
-        #Arguments
+        # Arguments
 
         * `&self` - Parser
         * `s` - the string to match on
 
-        #Outputs
+        # Outputs
 
         * `bool` - if a match was found or not
      */
@@ -47,14 +47,14 @@ impl Parser{
     }
 
     /** fn eof
-        #Summary
+        # Summary
         The function checks if all input has
         been consumed(is at end of file)
-        #Arguments
+        # Arguments
 
         * `&self` - Parser
 
-        #Output
+        # Output
 
         * `bool` - if at end of input
      */
@@ -64,14 +64,14 @@ impl Parser{
     }
 
     /** fn consume_char
-        #Summary
+        # Summary
         The function consumes a character and 
         returns it to the caller
-        #Arguments
+        # Arguments
 
         * `&mut self` - Parser
 
-        #Outputs
+        # Outputs
 
         * `char` - the character consumed
      */
@@ -92,23 +92,48 @@ impl Parser{
     }
 
     /** fn consume_while
-        #Summary
+        # Summary
         The function consumes a string of characters
         that meet a given condition
-        #Arguments
+        # Arguments
 
         * `&mut self` - Parser
         * `test` - F where F is the condition to 
         meet(a function or closure mapping Char to bool)
 
-        #Output
+        # Output
 
         * `String` - the matching string that is consumed
 
      */
     fn consume_while<F>(&mut self, test: F) -> String
     where F: Fn(Char) -> bool{
+        let mut result = String::new();
+        while !self.eof() && test(self.next_char()){
+            result.push(self.consume_char());
+        }
+        result
+    }
 
+    ///TODO:Comment this function
+    fn consume_whitespace(&mut self){
+        self.consume_while(CharExt::is_whitespace);
+    }
+
+    ///TODO:Comment this
+    fn parse_tag_name(&mut self) -> String{
+        self.consume_while(|c| match c{
+            'a'...'z' | 'A'...'Z' | '0'...'9' => true,
+            _ => false
+        })
+    }
+
+    ///TODO:Comment this
+    fn parse_node(&mut self) -> dom::Node {
+        match self.next_char(){
+            '<' => self.parse_element(),
+            _ => self.parse_text()
+        }
     }
     
 }
