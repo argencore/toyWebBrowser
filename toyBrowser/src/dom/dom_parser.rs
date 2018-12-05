@@ -115,12 +115,29 @@ impl Parser{
         result
     }
 
-    ///TODO:Comment this function
+    /** fn consume_whitespace
+        # Summary
+        The function consumes characters while the characters are whitespace
+        # Arguments
+
+        * `&mut self` - Parser
+     */
     fn consume_whitespace(&mut self){
         self.consume_while(CharExt::is_whitespace);
     }
 
-    ///TODO:Comment this
+    /** fn parse_tag_name
+        # Summary
+        The function parses a tag by consumeing characters that are 
+        in the set (a-z),(A-Z),(0-9)
+        # Arguments
+
+        * `&mut self` - Parser
+
+        # Output
+
+        * `String` - the tag that was parsed
+     */
     fn parse_tag_name(&mut self) -> String{
         self.consume_while(|c| match c{
             'a'...'z' | 'A'...'Z' | '0'...'9' => true,
@@ -128,12 +145,74 @@ impl Parser{
         })
     }
 
-    ///TODO:Comment this
+    /** fn parse_node
+        # Summary
+        The function checks for the indicator of a tag and parses
+        it as an elements anything else gets parsed as text since those are 
+        currently the only two options
+        # Arguments
+
+        * `&mut self` - Parser
+
+        #Output
+
+        * `dom::Node` - a node in the dom tree
+     */
     fn parse_node(&mut self) -> dom::Node {
         match self.next_char(){
             '<' => self.parse_element(),
             _ => self.parse_text()
         }
+    }
+
+    /** fn parse_text
+        # Summary
+        The function parses the text by consuming it untill
+        a tag is hit
+
+        # Arguments
+
+        * `&mut self` - Parser
+
+        # Outputs
+
+        * `dom::Node` - a node in the dom tree
+     */
+    fn parse_text(&mut self) -> dom::Node{
+        dom::text(self.consume_while(|c| c != '<'))
+    }    
+
+    /** fn parse_element
+        # Summary
+        The function parses an element by first checking there
+        is a valid tag then grabing the tag name and attributes 
+        Then the closeing tag is taken and the children are parsed
+        followed by a closing tag
+        # Arguments
+
+        * `&mut self` - Parser
+
+        # Output
+
+        * `dom::Node` - an element node with children
+     */
+    fn parse_element(&mut self) -> dom::Node{
+        assert!(self.consume_char() == '<');
+        let tag_name = self.parse_tag_name();
+        let attributes = self.parse_attributes();
+        assert!(self.consume_char() == '>');
+
+        //contents
+        let children = self.parse_nodes();
+
+        //closing tag
+        assert!(self.consume_char() == '<');
+        assert!(self.consume_char() == '/');
+        assert!(self.parse_tag_name() == tag_name);
+        assert!(self.consume_char() == '>');
+
+        dom::elem(tag_name, attributes, children)
+
     }
     
 }
